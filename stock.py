@@ -1,11 +1,9 @@
-# -*- coding: UTF-8 -*-
-
 import akshare
 import os
 import pandas as pd
 
 
-def getStock(path, symbol, start_date='', end_date='', adjust='qfq'):
+def get_stock(path, symbol, start_date='', end_date='', adjust='qfq'):
     f = os.path.join(path, symbol + '.csv')
     if os.path.exists(f) and os.path.isfile(f):
         data = pd.read_csv(f)
