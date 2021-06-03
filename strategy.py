@@ -1,8 +1,7 @@
 import backtrader as bt
-import backtrader.feeds as btfeeds
+# import backtrader.feeds as btfeeds
 # import backtrader.indicators as btind
-import datetime
-# import matplotlib.pyplot as plt
+from data import get_data
 
 
 class MyStrategy(bt.Strategy):
@@ -16,7 +15,6 @@ class MyStrategy(bt.Strategy):
         # bt.indicators.SMA(period=15)
         # self.sma = btind.rsi(period=15)
         # Write down: no pending order
-        self.order = None
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -27,14 +25,29 @@ class MyStrategy(bt.Strategy):
         # Attention: broker could reject order if not enough cash
         if order.status in [order.Completed]:
             if order.isbuy():
-                self.log('BUY EXECUTED, %.2f' % order.executed.price)
+                self.log('【开仓】  价格： {:.2f}  总价： {.2f}  佣金： {.2f}'.format(
+                    order.executed.price,
+                    order.executed.value,
+                    order.executed.comm))
             elif order.issell():
-                self.log('SELL EXECUTED, %.2f' % order.executed.price)
+                self.log('【平仓】  价格： {:.2f}  总价： {.2f}  佣金： {.2f}'.format(
+                    order.executed.price,
+                    order.executed.value,
+                    order.executed.comm))
 
             self.bar_executed = len(self)
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
+
+        self.order = None
+
+    def notify_trade(self, trade):
+        if not trade.isclosed:
+            pass
+        else:
+            self.log('【单笔交易盈利】  毛利： {:.2f}  净利： {:.2f}'.format(
+                trade.pnl, trade.pnlcomm))
 
     def next(self):
         # if self.sma > self.data.close:
@@ -64,28 +77,21 @@ if __name__ == '__main__':
     #                                 todate=datetime.datetime(2021, 10, 10),
     #                                 timeframe=bt.TimeFrame.Days
     #                                 )
-    data = btfeeds.YahooFinanceCSVData(
-            dataname='data.csv',
-            # Do not pass values before this date
-            fromdate=datetime.datetime(2000, 1, 1),
-            # Do not pass values before this date
-            todate=datetime.datetime(2000, 12, 31),
-            # Do not pass values after this date
-            reverse=False)
+
     cerebro = bt.Cerebro()
-    cerebro.adddata(data)
+    cerebro.adddata(get_data('data.csv', '2003-01-01', '2005-12-31'))
     cerebro.addstrategy(MyStrategy)
     cerebro.broker.setcommission(commission=0.001, margin=False, mult=1)
     cerebro.broker.setcash(10000)
     # cerebro.addsizer
 
     # Print out the starting conditions
-    print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    print('【初始资金】  %.2f' % cerebro.broker.getvalue())
 
     # Run over everything
     cerebro.run()
 
     # Print out the final result
-    print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    print('【结束资金】  %.2f' % cerebro.broker.getvalue())
 
-    cerebro.plot()
+    cerebro.plot(style='candle')
