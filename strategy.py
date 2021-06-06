@@ -1,11 +1,11 @@
 import backtrader as bt
 import pandas as pd
-import backtrader.analyzers as btanalyzers
-import backtrader.feeds as btfeeds
-# from data import get_data
+
+# import data, sizer, indicator, analyzer
+from data import get_csv_data
+from sizer import MaxRiskSizer
 from indicator import Ketler
-from datetime import datetime as dt
-import math
+import backtrader.analyzers as btanalyzers
 
 
 class MyStrategy(bt.Strategy):
@@ -27,19 +27,21 @@ class MyStrategy(bt.Strategy):
         # Attention: broker could reject order if not enough cash
         if order.status in [order.Completed]:
             if order.isbuy():
-                self.log('【开仓】  价格： {:.2f}  总价： {:.2f}  佣金： {:.2f}'.format(
+                self.log('【开仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.format(
                     order.executed.price,
+                    order.size,
                     order.executed.value,
                     order.executed.comm))
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
             elif order.issell():
-                self.log('【平仓】  价格： {:.2f}  总价： {:.2f}  佣金： {:.2f}'.format(
+                self.log('【平仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.format(
                     order.executed.price,
+                    order.size,
                     order.executed.value,
                     order.executed.comm))
 
-            self.bar_executed = len(self)
+            # self.bar_executed = len(self)
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
@@ -54,52 +56,22 @@ class MyStrategy(bt.Strategy):
                 trade.pnl, trade.pnlcomm))
 
     def next(self):
-        data_value = self.broker.getvalue([self.data])
         if not self.position:
             if self.close[0] > self.ketler.lower[0]:
-                self.order = self.order_target_value(data_value//(self.close*100))
                 self.order = self.buy()
         else:
             if self.close[0] < self.ketler.upper[0]:
                 self.order = self.sell()
 
 
-class MaxRiskSizer(bt.Sizer):
-    '''
-    Returns the number of shares rounded down that can be purchased for the
-    max rish tolerance
-    '''
-    params = (('risk', 1))
-
-    def __init__(self):
-        if self.p.risk > 1 or self.p.risk < 0:
-            raise ValueError('The risk parameter is a percentage which must be entered as a float. e.g. 0.5')
-
-    def _getsizing(self, comminfo, cash, data, isbuy):
-        if isbuy:
-            size = math.floor((cash * self.p.risk) / (100.0012*data[0])) * 100
-        else:
-            pass
-        return size
-
-
 if __name__ == '__main__':
-    data = btfeeds.YahooFinanceCSVData(
-            dataname='data.csv',
-            # Do not pass values before this date
-            fromdate=dt.strptime('2003-01-01', '%Y-%m-%d'),
-            # Do not pass values before this date
-            todate=dt.strptime('2005-12-31', '%Y-%m-%d'),
-            # Do not pass values after this date
-            reverse=False)
+    data = get_csv_data('data.csv', '2003-01-01', '2005-12-31')
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
     cerebro.addstrategy(MyStrategy)
     cerebro.broker.setcommission(commission=0.0012, margin=False, mult=1)
     cerebro.broker.setcash(10000)
-    # cerebro.addsizer(bt.sizers.PercentSizer, percents=100)
-    # cerebro.addsizer(bt.sizers.SizerFix, stake=cerebro.broker.getvalue()//)
-    cerebro.addsizer(MaxRiskSizer, risk=1)
+    cerebro.addsizer(MaxRiskSizer)
     cerebro.addanalyzer(btanalyzers.SharpeRatio, _name='sharpe')
     cerebro.addanalyzer(btanalyzers.DrawDown, _name='drawdown')
     cerebro.addanalyzer(btanalyzers.Returns, _name='returns')

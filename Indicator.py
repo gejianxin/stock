@@ -6,10 +6,6 @@ class Ketler(bt.Indicator):
     lines = ('expo', 'atr', 'upper', 'lower')
     params = dict(ema=20, atr=17)
     plotinfo = dict(subplot=False)
-    # plotlines = dict(
-    #     upper=dict(ls='--'),
-    #     lower=dict(_samecolor=True)
-    # )
     plotlines = dict(
         buy=dict(marker='^', markersize=8.0, color='red', fillstyle='full'),
         sell=dict(marker='v', markersize=8.0, color='green', fillstyle='full'),

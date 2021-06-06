@@ -31,7 +31,7 @@ def rolling_poly9(origin_array: np.ndarray, window: int = 252) -> np.ndarray:
         stride_matrix = strided_app(origin_array, window, 1)
         # numpy.r_[]按照行方向拼接array，list是列向量形式存储，故仅能拼接array
         # numpy.c_[]按照列方向拼接array
-        # np.full()填充ndarray
+        # .full()填充ndarray
         return np.r_[np.full(window - 1, np.nan),
                      np.array(list(map(last_poly9, stride_matrix)))]
     else:
