@@ -25,3 +25,6 @@ class Ketler(bt.Indicator):
         self.lines.atr = bt.talib.ATR(self.datas[0].high, self.datas[0].low, self.datas[0].close, timeperiod=self.params.atr)
         self.lines.upper = self.lines.expo + self.lines.atr
         self.lines.lower = self.lines.expo + self.lines.atr
+
+class HMA(bt.Indicator):
+    lines = ('wma', 'hma',)
