@@ -1,5 +1,7 @@
+from analyze import rolling_poly9
 import backtrader as bt
 from backtrader import indicators as btind
+import numpy as np
 
 
 class Ketler(bt.Indicator):
@@ -26,5 +28,36 @@ class Ketler(bt.Indicator):
         self.lines.upper = self.lines.expo + self.lines.atr
         self.lines.lower = self.lines.expo + self.lines.atr
 
+
 class HMA(bt.Indicator):
-    lines = ('wma', 'hma',)
+    lines = ('hma')
+    params = dict(period=10)
+
+    def __init__(self):
+        self.lines.hma = btind.HullMovingAverage(period=self.params.period)
+
+
+class POLY(bt.Indicator):
+    lines = ('poly', 'hma')
+    params = dict(poly=9, window=252, step=1)
+
+    def __init__(self):
+        self.lines.hma = HMA()
+        self.poly_data = self.data.close
+        self.poly = self.rolling_poly(self.poly_data)
+
+    def next(self):
+        self.poly[0] = self.rolling_poly(self.data.get(ago=3, ))
+        pass
+
+    def rolling_poly(data, window=self.params.window, step=self.params.step, poly=self.params.poly):
+        if len(data) < window:
+            index = range(len(data))
+            fit_params = np.polynomial.Chebyshev.fit(index, data, poly)
+            fit_data = fit_params(index)
+            return fit_data
+        else:
+            index = range(window)
+            fit_params = np.polynomial.Chebyshev.fit(index, data, poly)
+            fit_data = fit_params(index)[-1]
+
