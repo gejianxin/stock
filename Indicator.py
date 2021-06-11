@@ -28,3 +28,4 @@ class Ketler(bt.Indicator):
 
 class HMA(bt.Indicator):
     lines = ('wma', 'hma',)
+    params = dict()
