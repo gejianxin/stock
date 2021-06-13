@@ -4,7 +4,7 @@ import pandas as pd
 # import data, sizer, indicator, analyzer
 from data import get_csv_data
 from sizer import MaxRiskSizer
-from indicator import Ketler
+from indicator import Ketler, POLY
 import backtrader.analyzers as btanalyzers
 
 
@@ -18,6 +18,7 @@ class MyStrategy(bt.Strategy):
         self.close = self.datas[0].close
         self.ketler = Ketler()
         self.hma = bt.indicators.HullMovingAverage(period=10)
+        self.poly = POLY(self.hma)
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:

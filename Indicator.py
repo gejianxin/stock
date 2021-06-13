@@ -29,35 +29,43 @@ class Ketler(bt.Indicator):
         self.lines.lower = self.lines.expo + self.lines.atr
 
 
-class HMA(bt.Indicator):
-    lines = ('hma')
-    params = dict(period=10)
+# class CUS_HMA(bt.Indicator):
+    # lines = ('hma')
+    # params = dict(period=10)
+    # plotinfo = dict(subplot=False)
 
-    def __init__(self):
-        self.lines.hma = btind.HullMovingAverage(period=self.params.period)
+    # def __init__(self):
+    #     self.lines.hma = btind.HullMovingAverage(period=self.params.period)
 
 
 class POLY(bt.Indicator):
     lines = ('poly', 'hma')
-    params = dict(poly=9, window=252, step=1)
+    # lines = ('poly',)
+    params = dict(poly=9, window=252, step=1, period=10)
 
-    def __init__(self):
-        self.lines.hma = HMA()
-        self.poly_data = self.data.close
-        self.poly = self.rolling_poly(self.poly_data)
+    def __init__(self, data):
+        self.lines.hma = bt.indicators.HullMovingAverage(period=self.params.period) 
+        # 尝试把HMA数据作为POLY指标的参数传入
+        # print('hma length is : {}'.format(len(self.lines.hma.values)))
+        # self.data = data
+        # print('self.data length is : {}'.format(len(self.data)))
 
     def next(self):
-        self.poly[0] = self.rolling_poly(self.data.get(ago=3, ))
-        pass
+        if len(self.data) < self.params.window:
+            self.lines.poly = np.polynomial.Chebyshev.fit(range(len(self.data)), self.data, self.params.poly)
+        if len(self.data) >= self.params.window:
+            self.fit = np.polynomial.Chebyshev.fit(range(self.params.window), self.data.get(ago=-self.params.window, size=self.params.window), self.params.poly)
+            self.lines.poly[0] = self.fit(range(self.params.window))[-1]
 
-    def rolling_poly(data, window=self.params.window, step=self.params.step, poly=self.params.poly):
-        if len(data) < window:
-            index = range(len(data))
-            fit_params = np.polynomial.Chebyshev.fit(index, data, poly)
-            fit_data = fit_params(index)
-            return fit_data
-        else:
-            index = range(window)
-            fit_params = np.polynomial.Chebyshev.fit(index, data, poly)
-            fit_data = fit_params(index)[-1]
+
+    # def rolling_poly(data, window, step, poly):
+    #     if len(data) < window:
+    #         index = range(len(data))
+    #         fit_params = np.polynomial.Chebyshev.fit(index, data, poly)
+    #         fit_data = fit_params(index)
+    #         return fit_data
+    #     else:
+    #         index = range(window)
+    #         fit_params = np.polynomial.Chebyshev.fit(index, data, poly)
+    #         fit_data = fit_params(index)[-1]
 
