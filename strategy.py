@@ -30,19 +30,25 @@ class MyStrategy(bt.Strategy):
         # Attention: broker could reject order if not enough cash
         if order.status in [order.Completed]:
             if order.isbuy():
-                self.log('【开仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.format(
-                    order.executed.price,
-                    order.size,
-                    order.executed.value,
-                    order.executed.comm))
+                self.log(
+                    '【开仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.
+                    format(
+                        order.executed.price,
+                        order.size,
+                        order.executed.value,
+                        order.executed.comm
+                        ))
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
             elif order.issell():
-                self.log('【平仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.format(
-                    order.executed.price,
-                    order.size,
-                    order.executed.value,
-                    order.executed.comm))
+                self.log(
+                    '【平仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.
+                    format(
+                        order.executed.price,
+                        order.size,
+                        order.executed.value,
+                        order.executed.comm
+                        ))
 
             # self.bar_executed = len(self)
 
@@ -93,7 +99,10 @@ if __name__ == '__main__':
                  x.analyzers.drawdown.get_analysis()['max']['drawdown'],
                  x.analyzers.sharpe.get_analysis()['sharperatio']
                  ] for x in back]
-    par_df = pd.DataFrame(par_list, columns=['Total Return', 'APR', 'Drawdown', 'SharpRatio'])
+    par_df = pd.DataFrame(
+        par_list,
+        columns=['Total Return', 'APR', 'Drawdown', 'SharpRatio']
+        )
     print(par_df)
 
     # cerebro.plot()
