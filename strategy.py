@@ -1,59 +1,26 @@
+import pandas as pd
 import backtrader as bt
 from indicator import Ketler, HMA, POLY
+from backtrader import analyzers as btanalyzers
+from notify import order_log, trade_log
+from data import get_csv_data
 
 
 class KetlerStrategy(bt.Strategy):
-    def log(self, txt, dt=None):
-        ''' Logging function for this strategy'''
-        dt = dt or self.datas[0].datetime.date(0)
-        print('%s, %s' % (dt.isoformat(), txt))
+    # def log(self, txt, dt=None):
+    #     ''' Logging function for this strategy'''
+    #     dt = dt or self.datas[0].datetime.date(0)
+    #     print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
         self.close = self.datas[0].close
         self.ketler = Ketler()
 
     def notify_order(self, order):
-        if order.status in [order.Submitted, order.Accepted]:
-            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
-            return
-
-        # Check if an order has been completed
-        # Attention: broker could reject order if not enough cash
-        if order.status in [order.Completed]:
-            if order.isbuy():
-                self.log(
-                    '【开仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.
-                    format(
-                        order.executed.price,
-                        order.size,
-                        order.executed.value,
-                        order.executed.comm
-                        ))
-                self.buyprice = order.executed.price
-                self.buycomm = order.executed.comm
-            elif order.issell():
-                self.log(
-                    '【平仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.
-                    format(
-                        order.executed.price,
-                        order.size,
-                        order.executed.value,
-                        order.executed.comm
-                        ))
-
-            # self.bar_executed = len(self)
-
-        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
-            self.log('Order Canceled/Margin/Rejected')
-
-        self.order = None
+        order_log(self.data.datetime.date(0), order)
 
     def notify_trade(self, trade):
-        if not trade.isclosed:
-            pass
-        else:
-            self.log('【单笔交易盈利】  毛利： {:.2f}  净利： {:.2f}'.format(
-                trade.pnl, trade.pnlcomm))
+        trade_log(self.data.datetime.date(0), trade)
 
     def next(self):
         if not self.position:
@@ -64,69 +31,70 @@ class KetlerStrategy(bt.Strategy):
                 self.order = self.sell()
 
 
-class PolyHmaStrategy(bt.strategy):
-    def log(self, txt, dt=None):
-        ''' Logging function for this strategy'''
-        dt = dt or self.datas[0].datetime.date(0)
-        print('%s, %s' % (dt.isoformat(), txt))
+# class PolyHmaStrategy(bt.strategy):
+#     def log(self, txt, dt=None):
+#         ''' Logging function for this strategy'''
+#         dt = dt or self.datas[0].datetime.date(0)
+#         print('%s, %s' % (dt.isoformat(), txt))
 
-    def __init__(self):
-        self.close = self.datas[0].close
-        self.hma = HMA()
-        self.poly = POLY()
+#     def __init__(self):
+#         self.close = self.datas[0].close
+#         self.hma = HMA()
+#         self.poly = POLY()
 
-    def notify_order(self, order):
-        if order.status in [order.Submitted, order.Accepted]:
-            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
-            return
+#     def notify_order(self, order):
+#         if order.status in [order.Submitted, order.Accepted]:
+#             # Buy/Sell order submitted/accepted to/by broker - Nothing to do
+#             return
 
-        # Check if an order has been completed
-        # Attention: broker could reject order if not enough cash
-        if order.status in [order.Completed]:
-            if order.isbuy():
-                self.log(
-                    '【开仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.
-                    format(
-                        order.executed.price,
-                        order.size,
-                        order.executed.value,
-                        order.executed.comm
-                        ))
-                self.buyprice = order.executed.price
-                self.buycomm = order.executed.comm
-            elif order.issell():
-                self.log(
-                    '【平仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.
-                    format(
-                        order.executed.price,
-                        order.size,
-                        order.executed.value,
-                        order.executed.comm
-                        ))
+#         # Check if an order has been completed
+#         # Attention: broker could reject order if not enough cash
+#         if order.status in [order.Completed]:
+#             if order.isbuy():
+#                 self.log(
+#                     '【开仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.
+#                     format(
+#                         order.executed.price,
+#                         order.size,
+#                         order.executed.value,
+#                         order.executed.comm
+#                         ))
+#                 self.buyprice = order.executed.price
+#                 self.buycomm = order.executed.comm
+#             elif order.issell():
+#                 self.log(
+#                     '【平仓】  价格： {:.2f}  数量： {:d}  总价： {:.2f}  佣金： {:.2f}'.
+#                     format(
+#                         order.executed.price,
+#                         order.size,
+#                         order.executed.value,
+#                         order.executed.comm
+#                         ))
 
-            # self.bar_executed = len(self)
+#             # self.bar_executed = len(self)
 
-        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
-            self.log('Order Canceled/Margin/Rejected')
+#         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
+#             self.log('Order Canceled/Margin/Rejected')
 
-        self.order = None
+#         self.order = None
 
-        def notify_trade(self, trade):
-            if not trade.isclosed:
-                pass
-            else:
-                self.log('【单笔交易盈利】  毛利： {:.2f}  净利： {:.2f}'.format(
-                    trade.pnl, trade.pnlcomm))
+#         def notify_trade(self, trade):
+#             if not trade.isclosed:
+#                 pass
+#             else:
+#                 self.log('【单笔交易盈利】  毛利： {:.2f}  净利： {:.2f}'.format(
+#                     trade.pnl, trade.pnlcomm))
 
 
 if __name__ == '__main__':
     data = get_csv_data('data.csv', '2003-01-01', '2005-12-31')
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
-    cerebro.addstrategy(MyStrategy)
+    cerebro.addstrategy(KetlerStrategy)
     cerebro.broker.setcommission(commission=0.0012, margin=False, mult=1)
     cerebro.broker.setcash(10000)
-    cerebro.addsizer(MaxRiskSizer)
+    # cerebro.addsizer(MaxRiskSizer)
+    # cerebro.addsizer(100)
     cerebro.addanalyzer(btanalyzers.SharpeRatio, _name='sharpe')
     cerebro.addanalyzer(btanalyzers.DrawDown, _name='drawdown')
     cerebro.addanalyzer(btanalyzers.Returns, _name='returns')

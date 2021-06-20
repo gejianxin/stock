@@ -3,15 +3,18 @@ import backtrader as bt
 import backtrader.analyzers as btanalyzers
 from data import get_csv_data
 from sizer import MaxRiskSizer
-from strategy import MyStrategy
+from strategy import KetlerStrategy
+from commission import StampDutyCommissionScheme
 
 
 if __name__ == '__main__':
     data = get_csv_data('data.csv', '2003-01-01', '2005-12-31')
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
-    cerebro.addstrategy(MyStrategy)
-    cerebro.broker.setcommission(commission=0.0012, margin=False, mult=1)
+    cerebro.addstrategy(KetlerStrategy)
+    comminfo = StampDutyCommissionScheme(stamp_duty=0.001, commission=0.0002)
+    # cerebro.broker.setcommission(commission=0.0012, margin=False, mult=1)
+    cerebro.broker.addcommissioninfo(comminfo)
     cerebro.broker.setcash(10000)
     cerebro.addsizer(MaxRiskSizer)
     cerebro.addanalyzer(btanalyzers.SharpeRatio, _name='sharpe')
