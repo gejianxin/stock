@@ -1,4 +1,4 @@
 {
     "jupyter.jupyterServerType": "local",
-    "python.pythonPath": "C:\\Users\\gejia\\anaconda3\\python.exe"
+    "python.pythonPath": "%USERPROFILE%\\anaconda3\\python.exe"
 }
