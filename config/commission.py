@@ -11,9 +11,9 @@ class StampDutyCommissionScheme(bt.CommInfoBase):
 
     def _getcommission(self, size, price, pseudoexec):
         if size > 0:
-            return size * price * self.params.commission * 100
+            return max(size*price*self.params.commission*100, 5)
         elif size < 0:
             # 在_getcommission中得到的commission是params参数中的值除以100
-            return size * price * (self.params.stamp_duty + self.params.commission*100)
+            return -size*price*(self.params.stamp_duty+self.params.commission*100)
         else:
             return 0
