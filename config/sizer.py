@@ -17,5 +17,5 @@ class MaxRiskSizer(bt.Sizer):
 
     def _getsizing(self, comminfo, cash, data, isbuy):
         if isbuy:
-            self.params.stake = math.floor(cash / ((100+comminfo.params.commission)*data[0])) * 100
+            self.params.stake = math.floor(cash / ((1+comminfo.params.commission+comminfo.params.stamp_duty)*100*data[0])) * 100
         return self.params.stake
