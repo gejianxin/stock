@@ -3,7 +3,7 @@ from indicators.HmaIndicator import Hma
 from indicators.PolyIndicator import Poly
 
 
-class PolyStrategy(bt.strategy):
+class PolyStrategy(bt.Strategy):
     def log(self, txt, dt=None):
         ''' Logging function for this strategy'''
         dt = dt or self.datas[0].datetime.date(0)
@@ -56,3 +56,12 @@ class PolyStrategy(bt.strategy):
             else:
                 self.log('【单笔交易盈利】  毛利： {:8.2f}  净利： {:8.2f}'.format(
                     trade.pnl, trade.pnlcomm))
+
+
+    def next(self):
+        if not self.position:
+            if self.close[0] > self.ketler.lower[0]:
+                self.order = self.buy()
+        else:
+            if self.close[0] < self.ketler.upper[0]:
+                self.order = self.sell()
