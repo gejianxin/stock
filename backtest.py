@@ -1,19 +1,20 @@
 import pandas as pd
 import backtrader as bt
 import backtrader.analyzers as btanalyzers
-from data import get_csv_data
+from data.data import get_csv_data
 from config.sizer import MaxRiskSizer
 from config.commission import StampDutyCommissionScheme
 from strategies.KetlerStrategy import KetlerStrategy
 from strategies.PolyStrategy import PolyStrategy
+from indicators.MAPower import ma_power
 
 
 if __name__ == '__main__':
-    data = get_csv_data('data.csv', '2003-01-01', '2005-12-31')
+    data = get_csv_data('data/data.csv', '2003-01-01', '2005-12-31')
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
-    cerebro.addstrategy(KetlerStrategy)
-    # cerebro.addstrategy(PolyStrategy)
+    # cerebro.addstrategy(KetlerStrategy)
+    cerebro.addstrategy(PolyStrategy)
     comminfo = StampDutyCommissionScheme(stamp_duty=0.001, commission=0.02)
     # cerebro.broker.setcommission(commission=0.0012, margin=False, mult=1)
     cerebro.broker.addcommissioninfo(comminfo)

@@ -13,6 +13,7 @@ class PolyStrategy(bt.Strategy):
         self.close = self.datas[0].close
         self.hma = Hma()
         self.poly = Poly()
+        self.crossover = bt.indicators.CrossOver(self.poly, self.hma)
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -50,18 +51,17 @@ class PolyStrategy(bt.Strategy):
 
         self.order = None
 
-        def notify_trade(self, trade):
-            if not trade.isclosed:
-                pass
-            else:
-                self.log('【单笔交易盈利】  毛利： {:8.2f}  净利： {:8.2f}'.format(
-                    trade.pnl, trade.pnlcomm))
-
+    def notify_trade(self, trade):
+        if trade.isclosed:
+            self.log('【单笔交易盈利】  毛利： {:8.2f}  净利： {:8.2f}'.format(
+                    trade.pnl,
+                    trade.pnlcomm
+                    ))
 
     def next(self):
         if not self.position:
-            if self.close[0] > self.ketler.lower[0]:
+            if self.crossover[0] > 0:
                 self.order = self.buy()
         else:
-            if self.close[0] < self.ketler.upper[0]:
+            if self.crossover[0] < 0:
                 self.order = self.sell()

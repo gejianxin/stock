@@ -49,12 +49,10 @@ class KetlerStrategy(bt.Strategy):
 
         self.order = None
 
-        def notify_trade(self, trade):
-            if not trade.isclosed:
-                pass
-            else:
-                self.log('【单笔交易盈利】  毛利： {:8.2f}  净利： {:8.2f}'.format(
-                    trade.pnl, trade.pnlcomm))
+    def notify_trade(self, trade):
+        if trade.isclosed:
+            self.log('【单笔交易盈利】  毛利： {:8.2f}  净利： {:8.2f}'.format(
+                trade.pnl, trade.pnlcomm))
 
     def next(self):
         if not self.position:

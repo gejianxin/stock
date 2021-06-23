@@ -1,5 +1,6 @@
 import numpy as np
 import numba as nb
+import backtrader as bt
 import talib
 
 
@@ -42,11 +43,11 @@ def ma_power(data, range_list=range(5, 30)):
     def inverse_num(series):
         # 计算逆序
         count = 0
-        for i in range(len(series)-1):
-            for j in range(i+1, len(series)):
-                if series[i] > series[j]:
+        for i in range(len(series)):
+            value = series[i]
+            for j in range(i):
+                if value < series[j]:
                     count += 1
-            i += 1
         return count
 
     # 准备收盘价，初始化ma多维数组
