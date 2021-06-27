@@ -2,11 +2,12 @@ import pandas as pd
 import backtrader as bt
 import backtrader.analyzers as btanalyzers
 from data.data import get_csv_data
-from config.sizer import MaxRiskSizer
-from config.commission import StampDutyCommissionScheme
+from lib.sizer import MaxRiskSizer
+from lib.commission import StampDutyCommissionScheme
 from strategies.KetlerStrategy import KetlerStrategy
 from strategies.PolyStrategy import PolyStrategy
-from indicators.MAPower import ma_power
+from strategies.PeakStrategy import PeakStrategy
+# from indicators.MAPower import ma_power
 
 
 if __name__ == '__main__':
@@ -14,7 +15,8 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
     # cerebro.addstrategy(KetlerStrategy)
-    cerebro.addstrategy(PolyStrategy)
+    # cerebro.addstrategy(PolyStrategy)
+    cerebro.addstrategy(PeakStrategy)
     comminfo = StampDutyCommissionScheme(stamp_duty=0.001, commission=0.02)
     # cerebro.broker.setcommission(commission=0.0012, margin=False, mult=1)
     cerebro.broker.addcommissioninfo(comminfo)
@@ -25,7 +27,6 @@ if __name__ == '__main__':
     cerebro.addanalyzer(btanalyzers.Returns, _name='returns')
 
     # Print out the starting conditions
-    print('【初始资金】  %.2f' % cerebro.broker.getvalue())
 
     # Run over everything
     back = cerebro.run()

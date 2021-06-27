@@ -1,6 +1,6 @@
+import backtrader as bt
 import numpy as np
 import numba as nb
-import talib
 
 
 @nb.jit(nopython=True)
@@ -45,35 +45,18 @@ def thresholding_algo(y, lag, threshold, influence):
     return signals
 
 
-def ma_power(data, range_list=range(5, 30)):
-    def inverse_num(series):
-        # 计算逆序
-        count = 0
-        for i in range(len(series)-1):
-            for j in range(i+1, len(series)):
-                if series[i] > series[j]:
-                    count += 1
-            i += 1
-        return count
+class Peak(bt.Indicator):
+    lines = ('peak',)
+    params = dict(
+        lag=5,
+        threshold=3.5,
+        influence=0.5,
+        )
 
-    # 准备收盘价，初始化ma多维数组
-    price = data.close
-    ma_np = np.empty((len(price), len(range_list)))
-    ma_count = 0
-
-    # 列向量对应MA5-MA30
-    for r in range_list:
-        ma = talib.MA(price, r)
-        ma_np[:, ma_count] = ma
-        ma_count += 
-
-    ma_max = max(range_list)
-    len_range_list = len(range_list)
-    num = np.zeros(len(price))
-    ratio = np.zeros(len(price))
-    with np.errstate(invalid='ignore', divide='ignore'):
-        for i in range(ma_max, len(price)):
-            num[i] = inverse_num(ma_np[i, :])
-            ratio[i] = num[i] / (len_range_list * (len_range_list - 1)) * 2
-
-    return ratio
+    def __init__(self):
+        self.lines.peak = thresholding_algo(
+            self.datas[0].close,
+            lag=self.params.lag,
+            threshold=self.params.threshold,
+            influence=self.params.influence
+            )
