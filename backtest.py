@@ -2,8 +2,8 @@ import pandas as pd
 import backtrader as bt
 import backtrader.analyzers as btanalyzers
 from data.data import get_csv_data
-from lib.sizer import MaxRiskSizer
-from lib.commission import StampDutyCommissionScheme
+from config.sizer import MaxRiskSizer
+from config.commission import StampDutyCommissionScheme
 from strategies.KetlerStrategy import KetlerStrategy
 from strategies.PolyStrategy import PolyStrategy
 from strategies.PeakStrategy import PeakStrategy

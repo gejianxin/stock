@@ -54,9 +54,10 @@ class Peak(bt.Indicator):
         )
 
     def __init__(self):
+        # self.addminperiod(self.params.lag)
         self.lines.peak = thresholding_algo(
-            self.datas[0].close,
+            np.array(self.datas[0].close),
             lag=self.params.lag,
             threshold=self.params.threshold,
             influence=self.params.influence
-            )
+            )[0, :]
