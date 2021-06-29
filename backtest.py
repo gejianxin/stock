@@ -7,6 +7,7 @@ from config.commission import StampDutyCommissionScheme
 from strategies.KetlerStrategy import KetlerStrategy
 from strategies.PolyStrategy import PolyStrategy
 from strategies.PeakStrategy import PeakStrategy
+from backtrader_plotting import Bokeh
 # from indicators.MAPower import ma_power
 
 
@@ -44,6 +45,7 @@ if __name__ == '__main__':
         columns=['Total Return', 'APR', 'Drawdown', 'SharpRatio']
         )
     print(par_df)
-
+    b = Bokeh(style='bar', plot_mode='single')
+    cerebro.plot(b)
     # cerebro.plot()
-    cerebro.plot(style='candle')
+    # cerebro.plot(style='candle')
