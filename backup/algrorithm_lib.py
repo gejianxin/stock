@@ -65,7 +65,7 @@ def ma_power(data, range_list=range(5, 30)):
     for r in range_list:
         ma = talib.MA(price, r)
         ma_np[:, ma_count] = ma
-        ma_count += 
+        ma_count += 1
 
     ma_max = max(range_list)
     len_range_list = len(range_list)
