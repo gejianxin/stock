@@ -1,11 +1,11 @@
 import pandas as pd
 import backtrader as bt
 import backtrader.analyzers as btanalyzers
-from data.data import get_csv_data
+from tools.data import get_csv_data
 from config.sizer import MaxRiskSizer
 from config.commission import StampDutyCommissionScheme
-from strategies.KetlerStrategy import KetlerStrategy
-from strategies.PolyStrategy import PolyStrategy
+# from strategies.KetlerStrategy import KetlerStrategy
+# from strategies.PolyStrategy import PolyStrategy
 from strategies.PeakStrategy import PeakStrategy
 from backtrader_plotting import Bokeh
 # from indicators.MAPower import ma_power
