@@ -3,6 +3,14 @@ import backtrader.feeds as btfeeds
 from datetime import datetime as dt
 
 
+# docker run command
+# docker run -it -e POSTGRES_PASSWORD=123456 -v /d/project/data:/var/lib/postgresql/data -p 5432:5432 --name db postgres:latest bash
+# chown postgres:postgres /var/lib/postgresql/data
+# initdb /var/lib/postgresql/data
+# 后台启动pg server
+# pg_ctl -D /var/lib/postgresql/data -l logfile start
+
+
 def get_online_data(ticker, fromdate, todate):
     data = btfeeds.YahooFinanceData(dataname=ticker,
                                     fromdate=dt.strptime(fromdate, '%Y-%m-%d'),
@@ -22,3 +30,6 @@ def get_csv_data(pathname, fromdate, todate):
         # Do not pass values after this date
         reverse=False)
     return data
+
+def get_db_data(db, ticker):
+
