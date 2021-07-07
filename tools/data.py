@@ -5,7 +5,7 @@ from datetime import date
 import psycopg2
 from psycopg2 import Error
 import tushare as ts
-from config import TOKEN, YEARS
+from ..config.essential import TOKEN, YEARS
 
 
 # docker run command
