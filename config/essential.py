@@ -1,6 +1,6 @@
 DB = dict(
     username='postgres',
-    # password='postgres',
+    password='123456',
     host='127.0.0.1',
     port='5432',
     database='stock',
