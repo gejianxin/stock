@@ -121,7 +121,7 @@ def get_db_data(ticker, fromdate, todate=dt.now().date(), db=DB):
     try:
         # Connect to an existing database
         connection = psycopg2.connect(user=db.username,
-                                      # password="123456",
+                                      password=db.password,
                                       host=db.host,
                                       port=db.port,
                                       database=db.database)
@@ -145,7 +145,7 @@ def insert_db_data(ticker, data, db=DB):
     try:
         # Connect to an existing database
         connection = psycopg2.connect(user=db.username,
-                                      # password="123456",
+                                      password=db.password,
                                       host=db.host,
                                       port=db.port,
                                       database=db.database)
