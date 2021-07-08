@@ -42,7 +42,7 @@ def get_online_data(ticker, fromdate, todate):
     return data
 
 
-def update_db_data(ticker, fromdate, todate=dt.now().date(), db=DB):
+def update_ticker_data(ticker, fromdate, todate=dt.now().date(), db=DB):
     if isinstance(fromdate, date):
         try:
             fromdate=dt.strptime(fromdate, '%Y-%m-%d')
@@ -51,36 +51,61 @@ def update_db_data(ticker, fromdate, todate=dt.now().date(), db=DB):
             message = template.format(type(error).__name__, error.args)
             print (message)
 
-    records = get_db_data(ticker=ticker, fromdate=fromdate, todate=todate, db=db)
+    records = get_ticker_data(ticker=ticker, fromdate=fromdate, todate=todate, db=db)
     firstdate = dt.strptime(records['date', 0], '%Y-%m-%d')
     lastdate = dt.strptime(records['date', -1], '%Y-%m-%d')
     delta = (fromdate - firstdate).days
     if delta < 0:  # fromdate < firstday, the database need to fullfil data before firstdate
         data = get_online_data(ticker=ticker, fromdate=fromdate, todate=firstdate-timedelta(days=1))
-        insert_db_data(ticker=ticker, data=data, db=db)  # insert data into db
+        insert_ticker_data(ticker=ticker, data=data, db=db)  # insert data into db
     delta = (todate - lastdate).days
     if delta > 0:  # todate > lastday, the database need to fullfil data after lastday
         data = get_online_data(ticker, fromdate=lastdate+timedelta(days=1), todate=todate)
-        insert_db_data(ticker=ticker, data=data, db=db)  # insert data into db
+        insert_ticker_data(ticker=ticker, data=data, db=db)  # insert data into db
 
 
 # default update recent 10 years data
-def update_all_db_data(ticker, year=YEARS, db=DB):
+def update_ticker_nyears_data(ticker, years=YEARS, db=DB):
     # Check database firstday lastday
     todate = dt.now().date()
-    fromdate = todate - timedelta(days=365.25*year)
-    records = get_db_data(ticker=ticker, fromdate=fromdate, todate=todate, db=db)
+    fromdate = todate - timedelta(days=365.25*years)
+    records = get_ticker_data(ticker=ticker, fromdate=fromdate, todate=todate, db=db)
     firstdate = dt.strptime(records['date', 0], '%Y-%m-%d')
     lastdate = dt.strptime(records['date', -1], '%Y-%m-%d')
     # check if firstday was before fromdate
     delta = (fromdate - firstdate).days
     if delta < 0:  # fromdate < firstday, the database need to fullfil data before firstdate
         data = get_online_data(ticker=ticker, fromdate=fromdate, todate=firstdate-timedelta(days=1))
-        insert_db_data(ticker=ticker, data=data, db=db)  # insert data into db
+        insert_ticker_data(ticker=ticker, data=data, db=db)  # insert data into db
     delta = (todate - lastdate).days
     if delta > 0:  # todate > lastday, the database need to fullfil data after lastday
         data = get_online_data(ticker, fromdate=lastdate+timedelta(days=1), todate=todate)
-        insert_db_data(ticker=ticker, data=data, db=db)  # insert data into db
+        insert_ticker_data(ticker=ticker, data=data, db=db)  # insert data into db
+
+
+def update_all_data(fromdate, todate=dt.now().date(), years=YEARS, db=DB):
+    if isinstance(fromdate, date):
+        try:
+            fromdate=dt.strptime(fromdate, '%Y-%m-%d')
+        except ValueError as error:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(error).__name__, error.args)
+            print (message)
+
+    tickers = get_all_tickers(token=TOKEN)
+    for ticker in tickers['ts_code']:
+        records = get_ticker_data(ticker=ticker, fromdate=fromdate, todate=todate, db=db)
+        firstdate = dt.strptime(records['date', 0], '%Y-%m-%d')
+        lastdate = dt.strptime(records['date', -1], '%Y-%m-%d')
+        # check if firstday was before fromdate
+        delta = (fromdate - firstdate).days
+        if delta < 0:  # fromdate < firstday, the database need to fullfil data before firstdate
+            data = get_online_data(ticker=ticker, fromdate=fromdate, todate=firstdate-timedelta(days=1))
+            insert_ticker_data(ticker=ticker, data=data, db=db)  # insert data into db
+        delta = (todate - lastdate).days
+        if delta > 0:  # todate > lastday, the database need to fullfil data after lastday
+            data = get_online_data(ticker, fromdate=lastdate+timedelta(days=1), todate=todate)
+            insert_ticker_data(ticker=ticker, data=data, db=db)  # insert data into db
 
 
 def get_csv_data(pathname, fromdate, todate):
@@ -109,7 +134,7 @@ def get_csv_data(pathname, fromdate, todate):
     return data
 
 
-def get_db_data(ticker, fromdate, todate=dt.now().date(), db=DB):
+def get_ticker_data(ticker, fromdate, todate=dt.now().date(), db=DB):
     if isinstance(fromdate, date):
         try:
             fromdate=dt.strptime(fromdate, '%Y-%m-%d')
@@ -141,7 +166,7 @@ def get_db_data(ticker, fromdate, todate=dt.now().date(), db=DB):
         print("PostgreSQL connection is closed")
 
 
-def insert_db_data(ticker, data, db=DB):
+def insert_ticker_data(ticker, data, db=DB):
     try:
         # Connect to an existing database
         connection = psycopg2.connect(user=db.username,
