@@ -1,9 +1,11 @@
-import math
-import requests
-from requests.exceptions import Timeout, ProxyError
-from config.essential import DB, TOKEN, PROXY, BASEURL, URL
-from tools.data import get_all_tickers, update_ticker_data
-from tools.proxy import get_proxy
+# import math
+# import requests
+# from requests.exceptions import Timeout, ProxyError
+# from config.essential import DB, TOKEN, PROXY, BASEURL, URL
+# from tools.data import get_all_tickers, update_ticker_data
+# from tools.proxy import get_proxy
+from config.essential import DB, TOKEN
+from tools.data_baostock import get_all_tickers, update_db_data
 
 
 # docker run command
@@ -18,26 +20,38 @@ from tools.proxy import get_proxy
 
 if __name__ == '__main__':
     tickers = get_all_tickers(token=TOKEN)
-    proxies = get_proxy(BASEURL, URL, proxies=[])
-    # Test proxy validity
-    for proxy in proxies:
-        try:
-            response = requests.get('https://finance.yahoo.com/', timeout=5, proxies=dict(https=proxy))
-            if response.status_code != 200:
-                proxies.remove(proxy)
-        except Timeout as error:
-            proxies.remove(proxy)
-            print(proxy, ' timeout')
-        except ProxyError as error:
-            proxies.remove(proxy)
-            print(proxy, ' error')
-    print(proxies)
-    step = math.ceil(len(tickers)/len(proxies))
-    for proxy in proxies:
-        i,j = 0,0
-        while j >= i*step and j <= (i+1)*step and j < len(tickers):
-            update_ticker_data(ticker=tickers['ts_code'][j], db=DB, proxy=proxy, fromdate='2010-01-01')
-            j += 1
+    for i in range(len(tickers)):
+        update_db_data(ticker=tickers['code'][i], db=DB, fromdate='2010-01-01')
+
+
+
+
+
+
+
+    # 1. 获取所有股票名称
+    # tickers = get_all_tickers(token=TOKEN)
+    # 2. 获取代理列表
+    # proxies = get_proxy(BASEURL, URL, proxies=[])
+    # 3. 验证代理有效性
+    # for proxy in proxies:
+    #     try:
+    #         response = requests.get('https://finance.yahoo.com/', timeout=5, proxies=dict(https=proxy))
+    #         if response.status_code != 200:
+    #             proxies.remove(proxy)
+    #     except Timeout as error:
+    #         proxies.remove(proxy)
+    #         print(proxy, ' timeout')
+    #     except ProxyError as error:
+    #         proxies.remove(proxy)
+    #         print(proxy, ' error')
+    # 4. 股票分组，使用对应代理下载，避免过多爬取数据被封
+    # step = math.ceil(len(tickers)/len(proxies))
+    # for proxy in proxies:
+    #     i,j = 0,0
+    #     while j >= i*step and j <= (i+1)*step and j < len(tickers):
+    #         update_ticker_data(ticker=tickers['ts_code'][j], db=DB, proxy=proxy, fromdate='2010-01-01')
+    #         j += 1
 
 
 

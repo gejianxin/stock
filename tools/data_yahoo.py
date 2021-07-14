@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 import math
 from datetime import datetime as dt, timedelta
 from datetime import date
@@ -8,6 +9,7 @@ import psycopg2
 from psycopg2 import Error, sql
 import tushare as ts
 import yfinance as yf
+import baostock as bs
 
 
 # Get all tickers
@@ -253,3 +255,16 @@ def check_ticker_date(ticker, db):
     finally:
         cursor.close()
         connection.close()
+
+
+def convert_ticker_type(ticker, style):
+    if style == 'yahoo':  # yfinance接受的股票代码格式
+        market = re.search('[a-zA-Z]{2}', ticker).group()
+        code = re.search('\d{6}', ticker).group()
+        ticker = '.'.join([code, market.upper()])
+        return ticker
+    elif style == 'baostock':  # baostock接受的股票代码模式
+        market = re.search('[a-zA-Z]{2}', ticker).group()
+        code = re.search('\d{6}', ticker).group()
+        ticker = '.'.join([market.lower(), code])
+        return ticker
