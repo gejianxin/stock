@@ -60,4 +60,4 @@ class Peak(bt.Indicator):
             lag=self.params.lag,
             threshold=self.params.threshold,
             influence=self.params.influence
-            )[0, :]
+            )[0,:]

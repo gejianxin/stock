@@ -1,5 +1,5 @@
-import pandas as pd
 import re
+import pandas as pd
 import math
 from datetime import datetime as dt, timedelta
 from datetime import date
@@ -220,7 +220,7 @@ def update_db_data(ticker, db, fromdate, todate=dt.now().strftime('%Y-%m-%d')):
     #         print (message)
 
     timespan = check_db_date(ticker=ticker, db=db)
-    if timespan == None:
+    if timespan is None:
         print('None data of {ticker}! '.format(ticker=ticker))
         data = get_hist_data(ticker=ticker, fromdate=fromdate, todate=todate)
         insert_db_data(ticker=ticker, data=data, db=db)  # insert data into db
@@ -239,3 +239,77 @@ def update_db_data(ticker, db, fromdate, todate=dt.now().strftime('%Y-%m-%d')):
             data = get_hist_data(ticker=ticker, fromdate=dt.strptime(lastdate+timedelta(days=1), '%Y-%m-%d'), todate=todate)
             insert_db_data(ticker=ticker, data=data, db=db)  # insert data into db
         print('{ticker} data update complete!'.format(ticker=ticker))
+
+
+def btfeeds_csv_data(pathname, fromdate, todate):
+    if not isinstance(fromdate, date):
+        try:
+            fromdate=dt.strptime(fromdate, '%Y-%m-%d').date()
+        except ValueError as error:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(error).__name__, error.args)
+            print (message)
+    if not isinstance(todate, date):
+        try:
+            todate=dt.strptime(todate, '%Y-%m-%d').date()
+        except ValueError as error:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(error).__name__, error.args)
+            print (message)
+    data = btfeeds.YahooFinanceCSVData(
+        dataname=pathname,
+        # Do not pass values before this date
+        fromdate=fromdate,
+        # Do not pass values before this date
+        todate=todate,
+        # Do not pass values after this date
+        reverse=False)
+    return data
+
+
+def btfeeds_online_data(ticker, fromdate, todate):
+    if not isinstance(fromdate, date):
+        try:
+            fromdate=dt.strptime(fromdate, '%Y-%m-%d').date()
+        except ValueError as error:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(error).__name__, error.args)
+            print (message)
+    if not isinstance(todate, date):
+        try:
+            todate=dt.strptime(todate, '%Y-%m-%d').date()
+        except ValueError as error:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(error).__name__, error.args)
+            print (message)
+
+    data = btfeeds.YahooFinanceData(dataname=ticker, fromdate=fromdate, todate=todate, timeframe=bt.TimeFrame.Days)
+    return data
+
+
+def btfeeds_db_data(ticker, db, fromdate, todate):
+    if not isinstance(fromdate, date):
+        try:
+            fromdate=dt.strptime(fromdate, '%Y-%m-%d')
+        except ValueError as error:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(error).__name__, error.args)
+            print (message)
+    if not isinstance(todate, date):
+        try:
+            todate=dt.strptime(todate, '%Y-%m-%d')
+        except ValueError as error:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(error).__name__, error.args)
+            print (message)
+    records = get_ticker_data(ticker=ticker, db=db, fromdate=fromdate, todate=todate)
+    # 删除close列，保留ajust close列
+    records = [record[:4]+record[5:] for record in records]
+    df = pd.DataFrame(data=records)
+    df.columns = ['date', 'open', 'high', 'low', 'close', 'volume']
+    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+    df['openinterest'] = 0
+    df.set_index(keys='date', inplace=True)
+
+    data = btfeeds.PandasData(dataname=df)
+    return data
