@@ -63,7 +63,7 @@ def ma_power(data, range_list=range(5, 30)):
 
     # 列向量对应MA5-MA30
     for r in range_list:
-        ma = talib.EMA(data, r)
+        ma = talib.MA(data, r)
         ma_np[:, ma_count] = ma
         ma_count += 1
 
