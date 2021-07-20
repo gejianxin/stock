@@ -1,8 +1,8 @@
 import re
-import pandas as pd
 import math
-from datetime import datetime as dt, timedelta
 from datetime import date
+from datetime import datetime as dt, timedelta
+import pandas as pd
 import backtrader as bt
 import backtrader.feeds as btfeeds
 import psycopg2
@@ -302,7 +302,7 @@ def btfeeds_db_data(ticker, db, fromdate, todate):
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
             message = template.format(type(error).__name__, error.args)
             print (message)
-    records = get_ticker_data(ticker=ticker, db=db, fromdate=fromdate, todate=todate)
+    records = get_db_data(ticker=ticker, db=db, fromdate=fromdate, todate=todate)
     # 删除close列，保留ajust close列
     records = [record[:4]+record[5:] for record in records]
     df = pd.DataFrame(data=records)
