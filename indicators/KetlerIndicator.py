@@ -1,6 +1,5 @@
 import backtrader as bt
 from backtrader import indicators as btind
-import numpy as np
 
 
 class Ketler(bt.Indicator):

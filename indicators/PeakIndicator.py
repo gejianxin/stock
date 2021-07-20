@@ -75,7 +75,7 @@ def ma_power(data, range_list=range(5, 30)):
         for i in range(ma_max, len(data)):
             num[i] = inverse_num(ma_np[i, :])
             ratio[i] = num[i] / (len_range_list * (len_range_list - 1)) * 2
-    print(ratio)
+
     return ratio
 
 
