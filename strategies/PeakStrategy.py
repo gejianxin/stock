@@ -7,6 +7,7 @@ class PeakStrategy(bt.Strategy):
     def __init__(self):
         self.data = self.datas[0].close
         self.peak = Peak()
+        print('Start')
     
         def notify_order(self, order):
             if order.status in [order.Submitted, order.Accepted]:
@@ -51,8 +52,9 @@ class PeakStrategy(bt.Strategy):
 
     def next(self):
         if not self.position:
-            if self.peak.algo[0] == -1 and talib.RSI(self.data, timeperiod=6) < 20:
+            if self.peak.algo[0] == -1:
+            # if self.peak.algo[0] == -1 & talib.RSI(self.data, timeperiod=6)[0] < 20:
                 self.order = self.buy()
         else:
-            if self.peak.algo[0] == 1 and talib.RSI(self.data, timeperiod=6) > 80:
+            if self.peak.algo[0] == 1:
                 self.order = self.sell()

@@ -1,5 +1,7 @@
 import re
 import math
+import pandas as pd
+from datetime import datetime as dt, timedelta
 from datetime import date
 from datetime import datetime as dt, timedelta
 import pandas as pd
@@ -310,6 +312,7 @@ def btfeeds_db_data(ticker, db, fromdate, todate):
     df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
     df['openinterest'] = 0
     df.set_index(keys='date', inplace=True)
+    print(df)
 
     data = btfeeds.PandasData(dataname=df)
     return data

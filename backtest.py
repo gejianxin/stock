@@ -1,7 +1,7 @@
 import pandas as pd
 import backtrader as bt
 import backtrader.analyzers as btanalyzers
-from backtrader_plotting import Bokeh
+# from backtrader_plotting import Bokeh
 from tools.data_baostock import btfeeds_db_data
 from config.sizer import MaxRiskSizer
 from config.commission import StampDutyCommissionScheme

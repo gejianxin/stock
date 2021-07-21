@@ -80,19 +80,20 @@ def ma_power(data, range_list=range(5, 30)):
 
 
 class Peak(bt.Indicator):
-    lines = ('algo','power')
+    lines = ('algo','power', 'rsi')
     params = dict(
         lag=5,
         threshold=3.5,
         influence=0.5,
         )
 
+
     def __init__(self):
-        # self.addminperiod(self.params.lag)
+        self.addminperiod(self.params.lag)
         self.lines.algo = thresholding_algo(
-            y=np.array(self.datas[0].close),
+            y=np.array(self.data),
             lag=self.params.lag,
             threshold=self.params.threshold,
             influence=self.params.influence
             )[0,:]
-        self.lines.power = ma_power(self.datas[0].close)
+        # self.lines.power = ma_power(np.array(self.datas[0].close[-1:0]))
