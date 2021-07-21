@@ -1,6 +1,7 @@
 import numpy as np
 import numba as nb
 import backtrader as bt
+from numpy.core.fromnumeric import ndim
 import talib
 
 
@@ -90,8 +91,10 @@ class Peak(bt.Indicator):
 
     def __init__(self):
         self.addminperiod(self.params.lag)
+        self.data = np.array(self.datas[0].close.lines[0])
+        print(self.data)
         self.lines.algo = thresholding_algo(
-            y=np.array(self.data),
+            y=self.data,
             lag=self.params.lag,
             threshold=self.params.threshold,
             influence=self.params.influence
