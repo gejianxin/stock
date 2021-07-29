@@ -14,6 +14,7 @@ class KetlerStrategy(bt.Strategy):
         self.close = self.datas[0].close
         self.ketler = Ketler()
 
+    @order_logger
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
             # Buy/Sell order submitted/accepted to/by broker - Nothing to do
@@ -43,7 +44,7 @@ class KetlerStrategy(bt.Strategy):
         #                 order.executed.value,
         #                 order.executed.comm
         #                 ))
-        order_logger(self, order)
+        # order_logger(self, order)
 
             # self.bar_executed = len(self)
 

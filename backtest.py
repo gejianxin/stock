@@ -1,8 +1,9 @@
 import pandas as pd
 import backtrader as bt
 import backtrader.analyzers as btanalyzers
+import backtrader.feeds as btfeeds
 # from backtrader_plotting import Bokeh
-from tools.data_baostock import btfeeds_db_data
+from tools.data_baostock import btfeeds_db_data, btfeeds_online_data
 from config.sizer import MaxRiskSizer
 from config.commission import StampDutyCommissionScheme
 from config.essential import DB
@@ -13,7 +14,19 @@ from strategies.KetlerStrategy import KetlerStrategy
 
 
 if __name__ == '__main__':
-    data = btfeeds_db_data(ticker='sz.000009', db=DB, fromdate='2010-01-01', todate='2015-12-31')
+    data = btfeeds_db_data(ticker='sz.000009', db=DB, fromdate='2014-01-01', todate='2015-12-31')
+    # # print(dataframe)
+    # dataframe= pd.read_csv(filepath_or_buffer='./data/data.csv',
+    #                         # skiprows=skiprows,
+    #                         # header=header,
+    #                         parse_dates=True,
+    #                         index_col=0)
+    # dataframe = dataframe.iloc[:,[0,1,2,4,5]]
+    # dataframe.columns = ['open', 'high', 'low', 'close', 'volume']
+    # print(dataframe)
+    # data = bt.feeds.PandasData(dataname=dataframe)
+    print(dir(data.params))
+    # data = btfeeds.YahooFinanceCSVData('data/data.csv', fromdate='2003-01-01', todate='2005-12-31')
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
     cerebro.addstrategy(KetlerStrategy)

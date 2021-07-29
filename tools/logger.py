@@ -4,19 +4,22 @@ def log(obj, txt, dt=None):
     print('%s, %s' % (dt.isoformat(), txt))
 
 
-def order_logger(obj, order):
-    if order.status in [order.Completed]:
-        if order.isbuy():
-            log(obj, '【开仓】  价格： {:6.2f}  数量： {:6d}  总价： {:8.2f}  佣金： {:6.2f}'.format(
-                order.executed.price,
-                order.size,
-                order.executed.value,
-                order.executed.comm))
-            obj.buyprice = order.executed.price
-            obj.buycomm = order.executed.comm
-        elif order.issell():
-            log(obj, '【平仓】  价格： {:6.2f}  数量： {:6d}  总价： {:8.2f}  佣金： {:6.2f}'.format(
-                order.executed.price,
-                order.size,
-                order.executed.value,
-                order.executed.comm))
+def order_logger(func):
+    def wrapper(*args, **kwargs):
+        if args[1].status in [args[1].Completed]:
+            if args[1].isbuy():
+                log(args[0], '【开仓】  价格： {:6.2f}  数量： {:6d}  总价： {:8.2f}  佣金： {:6.2f}'.format(
+                    args[1].executed.price,
+                    args[1].size,
+                    args[1].executed.value,
+                    args[1].executed.comm))
+                args[0].buyprice = args[1].executed.price
+                args[0].buycomm = args[1].executed.comm
+            elif args[1].issell():
+                log(args[0], '【平仓】  价格： {:6.2f}  数量： {:6d}  总价： {:8.2f}  佣金： {:6.2f}'.format(
+                    args[1].executed.price,
+                    args[1].size,
+                    args[1].executed.value,
+                    args[1].executed.comm))
+        return func(*args, **kwargs)
+    return wrapper

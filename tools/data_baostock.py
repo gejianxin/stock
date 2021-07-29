@@ -1,7 +1,5 @@
 import re
 import math
-import pandas as pd
-from datetime import datetime as dt, timedelta
 from datetime import date
 from datetime import datetime as dt, timedelta
 import pandas as pd
@@ -71,22 +69,46 @@ def get_hist_data(ticker, fromdate, todate):
     print('login respond error_code:'+lg.error_code)
     print('login respond  error_msg:'+lg.error_msg)
     ticker = convert_ticker_type(ticker, 'baostock')
-    records = bs.query_history_k_data_plus(ticker,
-            'date,open,high,low,close,volume',
-            start_date=fromdate, end_date=todate,
-            frequency='d', adjustflag='3')
+    records = bs.query_history_k_data_plus(ticker, 'date,open,high,low,close,volume', start_date=fromdate, end_date=todate, frequency='d', adjustflag='3')
     print('query_history_k_data_plus respond error_code: ', records.error_code)
     print('query_history_k_data_plus respond  error_msg: ', records.error_msg)
+    
+    # 查询复权因子
+    rs_list = []
+    rs_factor = bs.query_adjust_factor(code=ticker, start_date=fromdate, end_date=todate)
+    while (rs_factor.error_code == '0') & rs_factor.next():
+        rs_list.append(rs_factor.get_row_data())
+    result_factor = pd.DataFrame(rs_list, columns=rs_factor.fields)
+    # 返回示例数据
+    # code	dividOperateDate	foreAdjustFactor	backAdjustFactor	adjustFactor
+    # sh.600000	2015-06-23	0.663792	6.295967	6.295967
+    # sh.600000	2016-06-23	0.751598	7.128788	7.128788
+    # sh.600000	2017-05-25	0.989551	9.385732	9.385732
+    # 返回数据说明
+    # 参数名称	参数描述	算法说明
+    # code	证券代码
+    # dividOperateDate	除权除息日期	
+    # foreAdjustFactor	向前复权因子	除权除息日前一个交易日的收盘价/除权除息日最近的一个交易日的前收盘价
+    # backAdjustFactor	向后复权因子	除权除息日最近的一个交易日的前收盘价/除权除息日前一个交易日的收盘价
+    # adjustFactor	本次复权因子
+    # TODO: 时间段在最后一次除权除息之后
+    if dt.strptime(result_factor['dividOperateDate'][-1], format='%Y-%m-%d') < fromdate:
+        pass
+    elif dt.strptime(result_factor['dividOperateDate'][0], format='%Y-%m-%d') > todate:
+        pass
+    elif 
+
+    # 打印输出
+    print(result_factor)
+    
+
     data_list = []
     while (records.error_code == '0') & records.next():
         # 获取一条记录，将记录合并在一起
         data_list.append(records.get_row_data())
     result = pd.DataFrame(data_list, columns=records.fields)
     # 获取复权后数据
-    records = bs.query_history_k_data_plus(ticker,
-        'close',
-        start_date=fromdate, end_date=todate,
-        frequency='d', adjustflag='2')
+    records = bs.query_history_k_data_plus(ticker, 'close', start_date=fromdate, end_date=todate, frequency='d', adjustflag='2')
     print('query_history_k_data_plus respond error_code: ', records.error_code)
     print('query_history_k_data_plus respond  error_msg: ', records.error_msg)
     data_list = []
@@ -306,13 +328,26 @@ def btfeeds_db_data(ticker, db, fromdate, todate):
             print (message)
     records = get_db_data(ticker=ticker, db=db, fromdate=fromdate, todate=todate)
     # 删除close列，保留ajust close列
-    records = [record[:4]+record[5:] for record in records]
+    # records = [record[:4]+record[5:] for record in records]
     df = pd.DataFrame(data=records)
-    df.columns = ['date', 'open', 'high', 'low', 'close', 'volume']
-    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
-    df['openinterest'] = 0
-    df.set_index(keys='date', inplace=True)
+    df.columns = ['date', 'open', 'high', 'low', 'close', 'adjust close', 'volume']
+    df = df[['date', 'open', 'high', 'low', 'close', 'volume']]
     print(df)
-
+    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+    # df['date'] = df['date'].data()
+    # df['openinterest'] = 0
+    df.set_index(keys='date', inplace=True)
     data = btfeeds.PandasData(dataname=df)
+    # data = btfeeds.PandasData(
+    #     dataname=df,
+    #     fromdate=fromdate,
+    #     todate=todate,
+    #     datetime=None,
+    #     open=-1,
+    #     high=-1,
+    #     low=-1,
+    #     close=-1,
+    #     volume=-1,
+    #     openinterest=None,
+    # )
     return data
