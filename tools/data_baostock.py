@@ -74,11 +74,11 @@ def get_hist_data(ticker, fromdate, todate):
     print('query_history_k_data_plus respond  error_msg: ', records.error_msg)
     
     # 查询复权因子
-    rs_list = []
-    rs_factor = bs.query_adjust_factor(code=ticker, start_date=fromdate, end_date=todate)
-    while (rs_factor.error_code == '0') & rs_factor.next():
-        rs_list.append(rs_factor.get_row_data())
-    result_factor = pd.DataFrame(rs_list, columns=rs_factor.fields)
+    # rs_list = []
+    # rs_factor = bs.query_adjust_factor(code=ticker, start_date=fromdate, end_date=todate)
+    # while (rs_factor.error_code == '0') & rs_factor.next():
+    #     rs_list.append(rs_factor.get_row_data())
+    # result_factor = pd.DataFrame(rs_list, columns=rs_factor.fields)
     # 返回示例数据
     # code	dividOperateDate	foreAdjustFactor	backAdjustFactor	adjustFactor
     # sh.600000	2015-06-23	0.663792	6.295967	6.295967
@@ -92,14 +92,22 @@ def get_hist_data(ticker, fromdate, todate):
     # backAdjustFactor	向后复权因子	除权除息日最近的一个交易日的前收盘价/除权除息日前一个交易日的收盘价
     # adjustFactor	本次复权因子
     # TODO: 时间段在最后一次除权除息之后
-    if dt.strptime(result_factor['dividOperateDate'][-1], format='%Y-%m-%d') < fromdate:
-        pass
-    elif dt.strptime(result_factor['dividOperateDate'][0], format='%Y-%m-%d') > todate:
-        pass
-    elif 
-
-    # 打印输出
-    print(result_factor)
+    # for i in result_factor['dividOperateDate']:
+    #     last = dt.strptime(i, format='%Y-%m-%d')
+    #     while fromdate > last:
+    #         pass
+        
+    #     if i > todate:
+    #         pass
+    #     elif i >= fromdate and i < todate:
+    # if dt.strptime(result_factor['dividOperateDate'][-1], format='%Y-%m-%d') < fromdate:
+    #     pass
+    # elif dt.strptime(result_factor['dividOperateDate'][0], format='%Y-%m-%d') > todate:
+    #     pass
+    # elif 
+    # TODO END
+    # # 打印输出
+    # print(result_factor)
     
 
     data_list = []
@@ -185,7 +193,7 @@ def get_db_data(ticker, db, fromdate, todate=dt.now().date()):
         cursor.execute(query, (fromdate, todate))
         records = cursor.fetchall()
         return records
-    except (Exception, Error) as error:
+    except ValueError as error:
         print('Error while connecting to PostgreSQL', error)
     finally:
         cursor.close()
@@ -246,6 +254,8 @@ def update_db_data(ticker, db, fromdate, todate=dt.now().strftime('%Y-%m-%d')):
     timespan = check_db_date(ticker=ticker, db=db)
     if timespan is None:
         print('None data of {ticker}! '.format(ticker=ticker))
+        # TODO: 这一步可能会使前复权数据混乱，因为随着时间推移前复权因子会改变，所以前复权数据在新的分红之后均对应调整
+        # 这步仅能保证从fromdate到todate日期内的前复权数据是正确的，其他日期都不能保证
         data = get_hist_data(ticker=ticker, fromdate=fromdate, todate=todate)
         insert_db_data(ticker=ticker, data=data, db=db)  # insert data into db
     else:
