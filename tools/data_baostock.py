@@ -108,7 +108,6 @@ def get_hist_data(ticker, fromdate, todate):
     # TODO END
     # # 打印输出
     # print(result_factor)
-    
 
     data_list = []
     while (records.error_code == '0') & records.next():

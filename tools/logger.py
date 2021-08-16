@@ -21,5 +21,18 @@ def order_logger(func):
                     args[1].size,
                     args[1].executed.value,
                     args[1].executed.comm))
+            args[0].bar_excuted = len(args[0])
+        elif args[1].status in [args[1].Canceled, args[1].Margin, args[1].Rejected]:
+            log(args[0], 'Order Canceled/Margin/Rejected')
+
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def trade_logger(func):
+    def wrapper(*args, **kwargs):
+        if args[1].isclosed:
+            log(args[0], '【单笔交易盈利】  毛利： {:8.2f}  净利： {:8.2f}'.format(
+                args[1].pnl, args[1].pnlcomm))
         return func(*args, **kwargs)
     return wrapper

@@ -1,7 +1,7 @@
 # import pandas as pd
 import backtrader as bt
 from indicators.KetlerIndicator import Ketler
-from tools.logger import order_logger
+from tools.logger import order_logger, trade_logger
 
 
 class KetlerStrategy(bt.Strategy):
@@ -23,7 +23,6 @@ class KetlerStrategy(bt.Strategy):
         # Check if an order has been completed
         # Attention: broker could reject order if not enough cash
         # if order.status in [order.Completed]:
-        #     print(dir(order))
         #     if order.isbuy():
         #         self.log(
         #             '【开仓】  价格： {:6.2f}  数量： {:6d}  总价： {:8.2f}  佣金： {:6.2f}'.
@@ -44,19 +43,18 @@ class KetlerStrategy(bt.Strategy):
         #                 order.executed.value,
         #                 order.executed.comm
         #                 ))
-        # order_logger(self, order)
-
-            # self.bar_executed = len(self)
-
+        #     self.bar_executed = len(self)
         # elif order.status in [order.Canceled, order.Margin, order.Rejected]:
         #     self.log('Order Canceled/Margin/Rejected')
 
         self.order = None
 
+    @trade_logger
     def notify_trade(self, trade):
-        if trade.isclosed:
-            self.log('【单笔交易盈利】  毛利： {:8.2f}  净利： {:8.2f}'.format(
-                trade.pnl, trade.pnlcomm))
+        # if trade.isclosed:
+        #     self.log('【单笔交易盈利】  毛利： {:8.2f}  净利： {:8.2f}'.format(
+        #         trade.pnl, trade.pnlcomm))
+        pass
 
     def next(self):
         if not self.position:

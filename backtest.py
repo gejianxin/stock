@@ -45,6 +45,7 @@ if __name__ == '__main__':
 
     # Run over everything
     back = cerebro.run()
+    back.analyze
 
     # Print out the final result
     print('【结束资金】  %.2f' % cerebro.broker.getvalue())
