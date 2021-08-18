@@ -72,7 +72,7 @@ def get_hist_data(ticker, fromdate, todate):
     records = bs.query_history_k_data_plus(ticker, 'date,open,high,low,close,volume', start_date=fromdate, end_date=todate, frequency='d', adjustflag='3')
     print('query_history_k_data_plus respond error_code: ', records.error_code)
     print('query_history_k_data_plus respond  error_msg: ', records.error_msg)
-    
+
     # 查询复权因子
     # rs_list = []
     # rs_factor = bs.query_adjust_factor(code=ticker, start_date=fromdate, end_date=todate)
