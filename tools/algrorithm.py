@@ -57,7 +57,7 @@ def ma_power(data, range_list=range(5, 30)):
         return count
 
     # 准备收盘价，初始化ma多维数组
-    price = data['Close']
+    price = data['close']
     ma_np = np.empty((len(price), len(range_list)))
     ma_count = 0
 

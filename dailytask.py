@@ -4,8 +4,11 @@
 # from config.essential import DB, TOKEN, PROXY, BASEURL, URL
 # from tools.data import get_all_tickers, update_ticker_data
 # from tools.proxy import get_proxy
+from datetime import datetime as dt
+import pandas as pd
 from config.essential import DB, TOKEN
-from tools.data_baostock import get_all_tickers, update_db_data
+from tools.data_baostock import get_all_tickers, update_db_data, get_db_data
+from tools.algrorithm import thresholding_algo, ma_power
 
 
 # docker run command
@@ -23,9 +26,19 @@ if __name__ == '__main__':
     for i in range(len(tickers)):
         update_db_data(ticker=tickers['code'][i], db=DB, fromdate='2010-01-01')
 
+    for ticker in tickers:
+        records = get_db_data(ticker=ticker, db=DB, fromdate='2018-01-01', todate=dt.today().date())
+        df = pd.DataFrame(data=records)
+        df.columns = ['date', 'open', 'high', 'low', 'close', 'adjust close', 'volume']
+        df = df[['date', 'open', 'high', 'low', 'close', 'volume']]
+        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+        # df['date'] = df['date'].data()
+        # df['openinterest'] = 0
+        df.set_index(keys='date', inplace=True)
+        fit = thresholding_algo(df['close'], lag=5, threshold=3.5, influence=0.5)
+        print(fit)
 
-
-
+    
 
 
 

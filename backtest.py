@@ -75,16 +75,16 @@ if __name__ == '__main__':
     cerebro.addobserver(bt.observers.TimeReturn)
 
     # add analyzer
-    cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe')
-    cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
-    cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='tradeanalyzer')
-    cerebro.addanalyzer(bt.analyzers.Transactions, _name='transactions')
-    cerebro.addanalyzer(bt.analyzers.Returns, _name='returns')
+    cerebro.addanalyzer(bt.analyzers.SharpeRatio)
+    cerebro.addanalyzer(bt.analyzers.DrawDown)
+    cerebro.addanalyzer(bt.analyzers.TradeAnalyzer)
+    cerebro.addanalyzer(bt.analyzers.Transactions)
+    cerebro.addanalyzer(bt.analyzers.Returns)
 
     # Print out the starting conditions
 
     # Run over everything
-    res = cerebro.run()
+    res = cerebro.run()[0]
 
     # 总交易完成次数
     # res.analyzers.tradeanalyzer.get_analysis()['total']['closed']
@@ -118,22 +118,22 @@ if __name__ == '__main__':
     # print('【结束资金】  %.2f' % cerebro.broker.getvalue())
 
     outcome = [[cerebro.broker.getvalue(),
-                stock_return*100,
-                sh_return*100,
-                sz_return*100,
-                x.analyzers.returns.get_analysis()['rtot']*100,
-                x.analyzers.returns.get_analysis()['rnorm']*100,
-                x.analyzers.drawdown.get_analysis()['max']['drawdown'],
-                x.analyzers.sharpe.get_analysis()['sharperatio'],
-                x.analyzers.tradeanalyzer.get_analysis()['total']['closed'],
-                x.analyzers.tradeanalyzer.get_analysis()['won']['total']/x.analyzers.tradeanalyzer.get_analysis()['total']['closed']
-                ] for x in res]
+                stock_return,
+                sh_return,
+                sz_return,
+                res.analyzers.returns.get_analysis()['rtot'],
+                res.analyzers.returns.get_analysis()['rnorm'],
+                res.analyzers.drawdown.get_analysis()['max']['drawdown']/100,
+                res.analyzers.sharperatio.get_analysis()['sharperatio'],
+                res.analyzers.tradeanalyzer.get_analysis()['total']['closed'],
+                res.analyzers.tradeanalyzer.get_analysis()['won']['total']/res.analyzers.tradeanalyzer.get_analysis()['total']['closed']
+                ]]
     df = pd.DataFrame(
         outcome,
-        columns=['Total', 'NaturalReturn', 'SHNaturalReturn', 'SZNaturalReturn', 'StrategyReturn', 'AnnualReturn', 'MaxDrawdown', 'SharpRatio', 'Trade', 'WinRatio']
+        columns=['Total', 'NaturalReturn', 'SHNaturalReturn', 'SZNaturalReturn', 'StrategyReturn', 'AnnualReturn', 'MaxDrawdown', 'SharpRatio', 'Trades Count', 'WinRatio']
         )
-
-    if os.path.isfile('./data/{date}.csv'.format(date=dt.today())):
+    print(df)
+    if os.path.isfile('./data/{date}.csv'.format(date=dt.today().date())):
         df.to_csv('./data/{date}.csv'.format(date=dt.today().date()), mode='a', index=False, header=False)
     else:
         df.to_csv('./data/{date}.csv'.format(date=dt.today().date()), index=False)

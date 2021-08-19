@@ -341,22 +341,22 @@ def btfeeds_db_data(ticker, db, fromdate, todate):
     df = pd.DataFrame(data=records)
     df.columns = ['date', 'open', 'high', 'low', 'close', 'adjust close', 'volume']
     df = df[['date', 'open', 'high', 'low', 'close', 'volume']]
-    print(df)
     df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
     # df['date'] = df['date'].data()
     # df['openinterest'] = 0
     df.set_index(keys='date', inplace=True)
-    data = btfeeds.PandasData(dataname=df)
-    # data = btfeeds.PandasData(
-    #     dataname=df,
-    #     fromdate=fromdate,
-    #     todate=todate,
-    #     datetime=None,
-    #     open=-1,
-    #     high=-1,
-    #     low=-1,
-    #     close=-1,
-    #     volume=-1,
-    #     openinterest=None,
-    # )
+    print(df)
+    # data = btfeeds.PandasData(dataname=df)
+    data = btfeeds.PandasData(
+        dataname=df,
+        fromdate=fromdate,
+        todate=todate,
+        datetime=None,
+        open=0,
+        high=1,
+        low=2,
+        close=3,
+        volume=4,
+        openinterest=None
+    )
     return data
