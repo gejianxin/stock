@@ -11,7 +11,7 @@ class KetlerStrategy(bt.Strategy):
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
-        self.close = self.datas[0].close
+        self.close = self.datas[0].adjust
         self.ketler = Ketler()
 
     @order_logger

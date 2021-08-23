@@ -339,8 +339,8 @@ def btfeeds_db_data(ticker, db, fromdate, todate):
     # 删除close列，保留ajust close列
     # records = [record[:4]+record[5:] for record in records]
     df = pd.DataFrame(data=records)
-    df.columns = ['date', 'open', 'high', 'low', 'close', 'adjust close', 'volume']
-    df = df[['date', 'open', 'high', 'low', 'close', 'volume']]
+    df.columns = ['date', 'open', 'high', 'low', 'close', 'adjust', 'volume']
+    # df = df[['date', 'open', 'high', 'low', 'close', 'volume']]
     df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
     # df['date'] = df['date'].data()
     # df['openinterest'] = 0
@@ -356,7 +356,8 @@ def btfeeds_db_data(ticker, db, fromdate, todate):
         high=1,
         low=2,
         close=3,
-        volume=4,
-        openinterest=None
+        adjust=4,
+        volume=5,
+        openinterest=-1
     )
     return data

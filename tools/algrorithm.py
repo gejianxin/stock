@@ -3,7 +3,7 @@ import numba as nb
 import talib
 
 
-@nb.jit(nopython=True)
+# @nb.jit(nopython=True)
 def thresholding_algo(y, lag, threshold, influence):
     """
     Robust peak detection algorithm (using z-scores)
