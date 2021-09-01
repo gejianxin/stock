@@ -9,16 +9,16 @@ from tools.data_baostock import btfeeds_db_data, btfeeds_online_data, get_db_dat
 from config.sizer import MaxRiskSizer
 from config.commission import StampDutyCommissionScheme
 from config.essential import DB
-from strategies.KetlerStrategy import KetlerStrategy
+# from strategies.KetlerStrategy import KetlerStrategy
 # from strategies.PolyStrategy import PolyStrategy
-# from strategies.PeakStrategy import PeakStrategy
+from strategies.PeakStrategy import PeakStrategy
 # from indicators.MAPower import ma_power
 
 
 if __name__ == '__main__':
     ticker = 'sz.000009'
     fromdate = '2014-01-01'
-    todate = '2015-12-31'
+    todate = '2018-12-31'
     data = btfeeds_db_data(ticker=ticker, db=DB, fromdate=fromdate, todate=todate)
     # calculate natural return ratio of ticker
     # records columns are ['date', 'open', 'high', 'low', 'close', 'adjust close', 'volume']
@@ -49,9 +49,9 @@ if __name__ == '__main__':
     # add data
     cerebro.adddata(data)
     # add strategy
-    cerebro.addstrategy(KetlerStrategy)
+    # cerebro.addstrategy(KetlerStrategy)
     # cerebro.addstrategy(PolyStrategy)
-    # cerebro.addstrategy(PeakStrategy)
+    cerebro.addstrategy(PeakStrategy)
 
     # setup commission and add commission
     comminfo = StampDutyCommissionScheme(stamp_duty=0.001, commission=0.02)

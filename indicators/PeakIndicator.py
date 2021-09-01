@@ -5,7 +5,7 @@ from numpy.core.fromnumeric import ndim
 import talib
 
 
-@nb.jit(nopython=True)
+# @nb.jit(nopython=True)
 def thresholding_algo(y, lag, threshold, influence):
     """
     Robust peak detection algorithm (using z-scores)
@@ -81,7 +81,7 @@ def ma_power(data, range_list=range(5, 30)):
 
 
 class Peak(bt.Indicator):
-    lines = ('algo','power', 'rsi')
+    lines = ('algo',)
     params = dict(
         lag=5,
         threshold=3.5,
@@ -91,10 +91,12 @@ class Peak(bt.Indicator):
 
     def __init__(self):
         self.addminperiod(self.params.lag)
-        self.data = np.array(self.datas[0].close.lines[0])
-        print(self.data)
+        self.data = self.datas[0].close
+        # self.data = np.array(self.datas[0].close.lines[0])
+        print('data shuchu: ', np.array(self.data.lines[0]))
+        data = np.array(self.data.lines[0])[1:]
         self.lines.algo = thresholding_algo(
-            y=self.data,
+            y=data,
             lag=self.params.lag,
             threshold=self.params.threshold,
             influence=self.params.influence

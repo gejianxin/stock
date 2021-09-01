@@ -314,7 +314,7 @@ if __name__ == '__main__':
         if signal <= -1 and rsi[i] < 20:
         # if signal <= -1 and (ma_ratio[i] > 0.5 or ma_ratio[i] < 0.1) and rsi[i] < 20:
             candidate.append(i)
-    
+
     # print(df.index[candidate])
     # DatetimeIndex(['2018-03-16', '2018-03-23', '2018-03-26', '2018-03-27',
     #            '2018-03-28', '2018-03-29', '2018-05-03', '2018-05-04',
