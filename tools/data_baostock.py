@@ -1,12 +1,11 @@
 import re
-import math
 from datetime import date
 from datetime import datetime as dt, timedelta
 import pandas as pd
 import backtrader as bt
 import backtrader.feeds as btfeeds
 import psycopg2
-from psycopg2 import Error, sql
+from psycopg2 import sql
 import baostock as bs
 import tushare as ts
 
@@ -14,12 +13,25 @@ import tushare as ts
 def convert_ticker_type(ticker, style):
     if style == 'yahoo':  # yfinance接受的股票代码格式
         market = re.search('[a-zA-Z]{2}', ticker).group()
-        code = re.search('\d{6}', ticker).group()
+
+        # 以下解答针对 re.search('\d{6}', ticker).group() 报警的问题
+        # Anomalous backslash in string: '\\d'. String constant might be missing an r prefix.
+
+        # "\d" is same as "\\d" because there's no escape sequence for d. But it is not clear for the reader of the code.
+        # But, consider \t. "\t" represent tab chracter, while r"\t" represent literal \ and t character.
+
+        # So use raw string when you mean literal \ and d:
+        # re.compile(r"\d{3}")
+
+        # or escape backslash explicitly:
+        # re.compile("\\d{3}")
+
+        code = re.search('\\d{6}', ticker).group()
         ticker = '.'.join([code, market.upper()])
         return ticker
     elif style == 'baostock':  # baostock接受的股票代码模式
         market = re.search('[a-zA-Z]{2}', ticker).group()
-        code = re.search('\d{6}', ticker).group()
+        code = re.search('\\d{6}', ticker).group()
         ticker = '.'.join([market.lower(), code])
         return ticker
 
@@ -69,7 +81,7 @@ def get_hist_data(ticker, fromdate, todate):
     print('login respond error_code:'+lg.error_code)
     print('login respond  error_msg:'+lg.error_msg)
     ticker = convert_ticker_type(ticker, 'baostock')
-    records = bs.query_history_k_data_plus(ticker, 'date,open,high,low,close,volume', start_date=fromdate, end_date=todate, frequency='d', adjustflag='3')
+    records = bs.query_history_k_data_plus(ticker, 'date,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,isST', start_date=fromdate, end_date=todate, frequency='d', adjustflag='1') # adjustflag 复权状态(1：后复权， 2：前复权，3：不复权）
     print('query_history_k_data_plus respond error_code: ', records.error_code)
     print('query_history_k_data_plus respond  error_msg: ', records.error_msg)
 
@@ -87,7 +99,7 @@ def get_hist_data(ticker, fromdate, todate):
     # 返回数据说明
     # 参数名称	参数描述	算法说明
     # code	证券代码
-    # dividOperateDate	除权除息日期	
+    # dividOperateDate	除权除息日期
     # foreAdjustFactor	向前复权因子	除权除息日前一个交易日的收盘价/除权除息日最近的一个交易日的前收盘价
     # backAdjustFactor	向后复权因子	除权除息日最近的一个交易日的前收盘价/除权除息日前一个交易日的收盘价
     # adjustFactor	本次复权因子
@@ -96,7 +108,7 @@ def get_hist_data(ticker, fromdate, todate):
     #     last = dt.strptime(i, format='%Y-%m-%d')
     #     while fromdate > last:
     #         pass
-        
+
     #     if i > todate:
     #         pass
     #     elif i >= fromdate and i < todate:
@@ -104,27 +116,35 @@ def get_hist_data(ticker, fromdate, todate):
     #     pass
     # elif dt.strptime(result_factor['dividOperateDate'][0], format='%Y-%m-%d') > todate:
     #     pass
-    # elif 
+    # elif
     # TODO END
     # # 打印输出
     # print(result_factor)
 
-    data_list = []
-    while (records.error_code == '0') & records.next():
-        # 获取一条记录，将记录合并在一起
-        data_list.append(records.get_row_data())
-    result = pd.DataFrame(data_list, columns=records.fields)
+    # data_list = []
+    # while (records.error_code == '0') & records.next():
+    #     # 获取一条记录，将记录合并在一起
+    #     data_list.append(records.get_row_data())
+    # result = pd.DataFrame(data_list, columns=records.fields)
+    # result = result[result.tradestatus == '1']
+    # 可简化为如下形式
+    result = records.get_data()
+    # 获取的数据都是字符类型，要转换为数字型
+    result = result.apply(pd.to_numeric, axis=0, errors='ignore')
+    # 删除停牌期间数据，仅保留正常交易日数据
+    result = result[result.tradestatus == 1]
+
     # 获取复权后数据
-    records = bs.query_history_k_data_plus(ticker, 'close', start_date=fromdate, end_date=todate, frequency='d', adjustflag='2')
-    print('query_history_k_data_plus respond error_code: ', records.error_code)
-    print('query_history_k_data_plus respond  error_msg: ', records.error_msg)
-    data_list = []
-    while (records.error_code == '0') & records.next():
-        # 获取一条记录，将记录合并在一起
-        data_list.append(records.get_row_data())
-    result['adjust'] = pd.DataFrame(data_list)
-    result = result[['date','open','high','low','close','adjust','volume']]
-    result['date'] = pd.to_datetime(result['date']).dt.date
+    # records = bs.query_history_k_data_plus(ticker, 'close', start_date=fromdate, end_date=todate, frequency='d', adjustflag='2')
+    # print('query_history_k_data_plus respond error_code: ', records.error_code)
+    # print('query_history_k_data_plus respond  error_msg: ', records.error_msg)
+    # data_list = []
+    # while (records.error_code == '0') & records.next():
+    #     # 获取一条记录，将记录合并在一起
+    #     data_list.append(records.get_row_data())
+    # result['adjust'] = pd.DataFrame(data_list)
+    # result = result[['date','open','high','low','close','preclose','volume','amount','adjustflag','turn','tradestatus','pctChg','isST']]
+    result['date'] = pd.to_datetime(result['date'])
     bs.logout()
     return result
 
@@ -141,7 +161,7 @@ def check_db_date(ticker, db):
         cursor = connection.cursor()
         # query = sql.SQL('SELECT {date} FROM {table} WHERE dateti BETWEEN %s AND %s ORDER BY date ASC').format(date=sql.Identifier('date'), table=sql.Identifier(ticker))
         # cursor.execute(query, ('2000-01-01', '2003-01-10'))
-        query = sql.SQL('CREATE TABLE IF NOT EXISTS {table} (date DATE PRIMARY KEY, open FLOAT4, high FLOAT4, low FLOAT4, close FLOAT4, adjust FLOAT4, volumn INT)').format(table=sql.Identifier(ticker))
+        query = sql.SQL('CREATE TABLE IF NOT EXISTS {table} (date DATE PRIMARY KEY, open FLOAT4, high FLOAT4, low FLOAT4, close FLOAT4, preclose FLOAT4, volume INT, amount INT, adjustflag INT, turn FLOAT4, tradestatus INT, pctChg FLOAT4, isST INT)').format(table=sql.Identifier(ticker))
         cursor.execute(query)
         connection.commit()
         query = sql.SQL('SELECT {date} FROM {table} ORDER BY {date} ASC').format(date=sql.Identifier('date'), table=sql.Identifier(ticker))
@@ -155,8 +175,9 @@ def check_db_date(ticker, db):
                 lastdate=records[-1][0]
             )
         return timespan
-    except (Exception, Error) as error:
+    except Exception as error:
         print('Error while connecting to PostgreSQL', error)
+        print ("Exception TYPE:", type(error))
     finally:
         cursor.close()
         connection.close()
@@ -166,14 +187,14 @@ def get_db_data(ticker, db, fromdate, todate=dt.now().date()):
     if not isinstance(fromdate, date):
         try:
             fromdate=dt.strptime(fromdate, '%Y-%m-%d').date()
-        except ValueError as error:
+        except Exception as error:
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
             message = template.format(type(error).__name__, error.args)
             print (message)
     if not isinstance(todate, date):
         try:
             todate=dt.strptime(todate, '%Y-%m-%d').date()
-        except ValueError as error:
+        except Exception as error:
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
             message = template.format(type(error).__name__, error.args)
             print (message)
@@ -192,7 +213,7 @@ def get_db_data(ticker, db, fromdate, todate=dt.now().date()):
         cursor.execute(query, (fromdate, todate))
         records = cursor.fetchall()
         return records
-    except ValueError as error:
+    except Exception as error:
         print('Error while connecting to PostgreSQL', error)
     finally:
         cursor.close()
@@ -206,7 +227,7 @@ def insert_db_data(ticker, data, db):
             # 从baostock获得的数据类型为Dataframe，且不含索引
             # 必须转换为list
             data=data.values.tolist()
-        except ValueError as error:
+        except Exception as error:
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
             message = template.format(type(error).__name__, error.args)
             print (message)
@@ -220,14 +241,15 @@ def insert_db_data(ticker, data, db):
                                       database=db['database'])
         # Create a cursor to perform database operations
         cursor = connection.cursor()
-        query = sql.SQL('CREATE TABLE IF NOT EXISTS {table} (date DATE PRIMARY KEY, open FLOAT4, high FLOAT4, low FLOAT4, close FLOAT4, adjust FLOAT4, volumn INT)').format(table=sql.Identifier(ticker))
+        query = sql.SQL('CREATE TABLE IF NOT EXISTS {table} (date DATE PRIMARY KEY, open FLOAT4, high FLOAT4, low FLOAT4, close FLOAT4, preclose FLOAT4, volume INT, amount INT, adjustflag INT, turn FLOAT4, tradestatus INT, pctChg FLOAT4, isST INT)').format(table=sql.Identifier(ticker))
         cursor.execute(query)
         connection.commit()
-        query = sql.SQL('INSERT INTO {table} VALUES (%s, %s, %s, %s, %s, %s, %s)').format(table=sql.Identifier(ticker))
+        query = sql.SQL('INSERT INTO {table} VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)').format(table=sql.Identifier(ticker))
         cursor.executemany(query, data)
         connection.commit()
-    except (Exception, Error) as error:
+    except Exception as error:
         print('Error while connecting to PostgreSQL', error)
+        print ("Exception TYPE:", type(error))
     finally:
         cursor.close()
         connection.close()
@@ -323,14 +345,14 @@ def btfeeds_online_data(ticker, fromdate, todate):
 def btfeeds_db_data(ticker, db, fromdate, todate):
     if not isinstance(fromdate, date):
         try:
-            fromdate=dt.strptime(fromdate, '%Y-%m-%d')
+            fromdate=dt.strptime(fromdate, '%Y-%m-%d').date()
         except ValueError as error:
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
             message = template.format(type(error).__name__, error.args)
             print (message)
     if not isinstance(todate, date):
         try:
-            todate=dt.strptime(todate, '%Y-%m-%d')
+            todate=dt.strptime(todate, '%Y-%m-%d').date()
         except ValueError as error:
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
             message = template.format(type(error).__name__, error.args)
@@ -344,20 +366,21 @@ def btfeeds_db_data(ticker, db, fromdate, todate):
     df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
     # df['date'] = df['date'].data()
     # df['openinterest'] = 0
-    df.set_index(keys='date', inplace=True)
+    df.set_index(keys='date')
+    df.sort_index(inplace=True, ascending=False)
     print(df)
     # data = btfeeds.PandasData(dataname=df)
     data = btfeeds.PandasData(
         dataname=df,
+        datetime=None,
+        open=1,
+        high=2,
+        low=3,
+        close=4,
+        adjust=5,
+        volume=6,
+        openinterest=None,
         fromdate=fromdate,
         todate=todate,
-        datetime=None,
-        open=-1,
-        high=-1,
-        low=-1,
-        close=-1,
-        # adjust=4,
-        volume=-1,
-        openinterest=None
     )
     return data
