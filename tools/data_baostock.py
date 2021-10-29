@@ -176,7 +176,7 @@ def check_db_date(ticker, db):
             )
         return timespan
     except Exception as error:
-        print('Error while connecting to PostgreSQL', error)
+        print('Error while connecting/querying PostgreSQL', error)
         print ("Exception TYPE:", type(error))
     finally:
         cursor.close()
@@ -214,7 +214,7 @@ def get_db_data(ticker, db, fromdate, todate=dt.now().date()):
         records = cursor.fetchall()
         return records
     except Exception as error:
-        print('Error while connecting to PostgreSQL', error)
+        print('Error while connecting/querying PostgreSQL', error)
     finally:
         cursor.close()
         connection.close()
@@ -248,7 +248,7 @@ def insert_db_data(ticker, data, db):
         cursor.executemany(query, data)
         connection.commit()
     except Exception as error:
-        print('Error while connecting to PostgreSQL', error)
+        print('Error while inserting to PostgreSQL', error)
         print ("Exception TYPE:", type(error))
     finally:
         cursor.close()
@@ -257,20 +257,20 @@ def insert_db_data(ticker, data, db):
 
 
 def update_db_data(ticker, db, fromdate, todate=dt.now().strftime('%Y-%m-%d')):
-    # if not isinstance(fromdate, date):
-    #     try:
-    #         fromdate=dt.strptime(fromdate, '%Y-%m-%d').date()
-    #     except ValueError as error:
-    #         template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
-    #         message = template.format(type(error).__name__, error.args)
-    #         print (message)
-    # if not isinstance(todate, date):
-    #     try:
-    #         todate=dt.strptime(todate, '%Y-%m-%d').date()
-    #     except ValueError as error:
-    #         template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
-    #         message = template.format(type(error).__name__, error.args)
-    #         print (message)
+    if not isinstance(fromdate, date):
+        try:
+            fromdate=dt.strptime(fromdate, '%Y-%m-%d').date()
+        except ValueError as error:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(error).__name__, error.args)
+            print (message)
+    if not isinstance(todate, date):
+        try:
+            todate=dt.strptime(todate, '%Y-%m-%d').date()
+        except ValueError as error:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(error).__name__, error.args)
+            print (message)
 
     timespan = check_db_date(ticker=ticker, db=db)
     if timespan is None:
@@ -283,7 +283,7 @@ def update_db_data(ticker, db, fromdate, todate=dt.now().strftime('%Y-%m-%d')):
         firstdate = timespan['firstdate']
         lastdate = timespan['lastdate']
 
-        delta = (dt.strptime(fromdate, '%Y-%m-%d') - firstdate).days
+        delta = (fromdate - firstdate).days
         if delta < 0:  # fromdate < firstday, the database need to fullfil data before firstdate
             # using baostock to get data, make sure data type is list or Dataframe
             data = get_hist_data(ticker=ticker, fromdate=fromdate, todate=dt.strptime(firstdate-timedelta(days=1), '%Y-%m-%d'))
